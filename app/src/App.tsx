@@ -13,7 +13,7 @@ function Home() {
 }
 
 function About() {
-  return <div>About Page</div>;
+  return <div>The About Page</div>;
 }
 
 function App() {

@@ -1,0 +1,23 @@
+{
+  "devDependencies": {
+    "cross-env-shell": "^7.0.3",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.6.2"
+  },
+  "scripts": {
+    "prepare": "husky install",
+    "format": "prettier --write \"app/**/*.{ts,tsx,js,jsx,json,css,md}\" \"service/**/*.{ts,js,json}\""
+  },
+  "lint-staged": {
+    "app/**/*.{ts,tsx,js,jsx}": [
+      "npx eslint --config app/eslint.config.js --fix"
+    ],
+    "service/**/*.{ts,js}": [
+      "npx eslint --config service/eslint.config.js --fix"
+    ],
+    "**/*.{ts,tsx,js,jsx}": [
+      "npx prettier --write"
+    ]
+  }
+}
