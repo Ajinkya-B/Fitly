@@ -1,0 +1,26 @@
+.about-container {
+  text-align: center;
+  padding: 5rem 1rem;
+}
+
+.about-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+
+.about-subtitle {
+  font-size: 1.25rem;
+  margin: 1rem 0 2rem;
+}
+
+.about-button {
+  background-color: #2563eb;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+}
+.about-button:hover {
+  background-color: #1d4ed8;
+}

@@ -1,34 +1,29 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
-import { useAppContext } from './hooks/useAppContext';
+import { GeneratePlan } from './pages/GeneratePlan';
+import { Dashboard } from './pages/Dashboard';
+import { About } from './pages/About';
 
-function Home() {
-  const { user } = useAppContext();
-  return (
-    <div>
-      Home Page
-      <div>Welcome to Fitly, {user ? user : 'Guest'}!</div>
-    </div>
-  );
-}
-
-function About() {
-  return <div>The About Page</div>;
-}
-
-function App() {
+const App = () => {
   return (
     <AppProvider>
       <Router>
         <div className="App">
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
+            <Route path="/" element={<About />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/generate-plan" element={<GeneratePlan />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
       </Router>
     </AppProvider>
   );
-}
+};
 
 export default App;
