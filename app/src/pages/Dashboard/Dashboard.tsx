@@ -1,4 +1,5 @@
 import { PlanHistorySection } from '../../components/PlanHistorySection';
+import { StreakTrackerSection } from '../../components/StreakTrackerSection/StreakTrackerSection';
 import './Dashboard.css';
 
 export const Dashboard = () => {
@@ -13,7 +14,9 @@ export const Dashboard = () => {
           <PlanHistorySection />
         </div>
 
-        <div className="dashboard-card card-small">StreakTracker</div>
+        <div className="dashboard-card card-small">
+          <StreakTrackerSection />
+        </div>
         <div className="dashboard-card card-wide">MuscleHeatmap</div>
       </div>
     </div>
