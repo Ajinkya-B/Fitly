@@ -1,14 +1,17 @@
 import { PlanHistorySection } from '../../components/PlanHistorySection';
-import { StreakTrackerSection } from '../../components/StreakTrackerSection/StreakTrackerSection';
+import { ProgressMeterSection } from '../../components/ProgressMeterSection';
+import { StreakTrackerSection } from '../../components/StreakTrackerSection';
 import './Dashboard.css';
 
 export const Dashboard = () => {
   return (
-    <div className="dashboard">
+    <div className="dashboard mx-auto max-w-[1440px] px-4">
       <h1 className="dashboard-title">Dashboard</h1>
 
       <div className="dashboard-grid">
-        <div className="dashboard-card card-large">Progress Meter</div>
+        <div className="dashboard-card card-large">
+          <ProgressMeterSection />
+        </div>
 
         <div className="dashboard-card card-tall">
           <PlanHistorySection />
