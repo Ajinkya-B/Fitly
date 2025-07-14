@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import './PlanCard.css';
 
 interface PlanCardProps {
@@ -9,8 +10,14 @@ interface PlanCardProps {
 }
 
 export const PlanCard = ({ id, name, days, date, progress }: PlanCardProps) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/plan/${id}`);
+  };
+
   return (
-    <div className="plan-card" key={id}>
+    <div className="plan-card cursor-pointer" key={id} onClick={handleClick}>
       <h3>{name}</h3>
       <p>{days} Days</p>
       <p className="plan-date">Created: {date}</p>

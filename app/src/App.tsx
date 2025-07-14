@@ -5,9 +5,9 @@ import {
   Navigate,
 } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
-import { GeneratePlan } from './pages/GeneratePlan';
 import { Dashboard } from './pages/Dashboard';
 import { About } from './pages/About';
+import { PlanDetail } from './pages/PlanDetail';
 
 const App = () => {
   return (
@@ -17,7 +17,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<About />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/generate-plan" element={<GeneratePlan />} />
+            <Route path="/plan/:planId" element={<PlanDetail />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>

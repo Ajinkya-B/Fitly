@@ -60,7 +60,7 @@
   margin-top: auto;
 }
 
-@media (min-width: 481px) {
+@media (min-width: 1025px) {
   .streak-section {
     flex-direction: row; /* side by side on desktop/tablet */
   }
