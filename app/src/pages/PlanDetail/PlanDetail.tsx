@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Table,
   TableHeader,
@@ -7,7 +7,13 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table';
-import { GripVertical, CheckCircle2, Loader, Clock } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { GripVertical } from 'lucide-react';
 
 import {
   DndContext,
@@ -26,6 +32,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { StatusPill, StepperStrengthContent } from '@/components';
 
 type StrengthExercise = {
   id: string;
@@ -42,7 +49,7 @@ type CardioExercise = {
   id: string;
   type: 'cardio';
   name: string;
-  time: number; // in minutes
+  time: number;
   speed?: number;
   calories?: number;
   status: 'Not Started' | 'In Progress' | 'Complete';
@@ -50,7 +57,6 @@ type CardioExercise = {
 
 type Exercise = StrengthExercise | CardioExercise;
 
-// Initial data with added status and ids
 const initialExercises: Exercise[] = [
   {
     id: '1',
@@ -84,32 +90,13 @@ const initialExercises: Exercise[] = [
   },
 ];
 
-const StatusPill = ({ status }: { status: string }) => {
-  let icon = null;
-
-  switch (status) {
-    case 'Complete':
-      icon = <CheckCircle2 className="text-green-600" size={18} />;
-      break;
-    case 'In Progress':
-      icon = <Loader className="text-yellow-600" size={18} />;
-      break;
-    case 'Not Started':
-    default:
-      icon = <Clock className="text-gray-500" size={18} />;
-      break;
-  }
-
-  return (
-    <span className="inline-flex items-center gap-2 rounded-md border border-gray-300 px-3 py-1 font-semibold text-gray-800">
-      {icon}
-      {status}
-    </span>
-  );
-};
-
-// Sortable row component that handles both exercise types
-const SortableRow = ({ exercise }: { exercise: Exercise }) => {
+const SortableRow = ({
+  exercise,
+  onStart,
+}: {
+  exercise: Exercise;
+  onStart: (exercise: Exercise) => void;
+}) => {
   const {
     attributes,
     listeners,
@@ -127,23 +114,28 @@ const SortableRow = ({ exercise }: { exercise: Exercise }) => {
 
   return (
     <TableRow ref={setNodeRef} style={style} {...attributes}>
-      {/* Drag handle + exercise name */}
       <TableCell className="flex items-center gap-2 cursor-move" {...listeners}>
         <GripVertical size={18} />
         <span>{exercise.name}</span>
       </TableCell>
 
-      {/* Type */}
       <TableCell>
         {exercise.type.charAt(0).toUpperCase() + exercise.type.slice(1)}
       </TableCell>
 
-      {/* Status pill */}
       <TableCell>
-        <StatusPill status={exercise.status} />
+        {exercise.status === 'Not Started' ? (
+          <button
+            onClick={() => onStart(exercise)}
+            className="text-sm font-medium text-blue-600 hover:underline"
+          >
+            Start
+          </button>
+        ) : (
+          <StatusPill status={exercise.status} />
+        )}
       </TableCell>
 
-      {/* Sets/Time */}
       <TableCell>
         {exercise.type === 'strength'
           ? exercise.sets
@@ -152,7 +144,6 @@ const SortableRow = ({ exercise }: { exercise: Exercise }) => {
           : `${exercise.time} min`}
       </TableCell>
 
-      {/* Calories */}
       <TableCell>
         {exercise.type === 'cardio' ? (exercise.calories ?? '-') : '-'}
       </TableCell>
@@ -162,6 +153,7 @@ const SortableRow = ({ exercise }: { exercise: Exercise }) => {
 
 export const PlanDetail = () => {
   const [exercises, setExercises] = useState(initialExercises);
+  const [activeExercise, setActiveExercise] = useState<Exercise | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -170,15 +162,27 @@ export const PlanDetail = () => {
     }),
   );
 
+  const sortedExercises = [...exercises].sort((a, b) => {
+    const order = {
+      'In Progress': 0,
+      'Not Started': 1,
+      Complete: 2,
+    };
+    return order[a.status] - order[b.status];
+  });
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (active.id !== over?.id) {
       const oldIndex = exercises.findIndex((ex) => ex.id === active.id);
       const newIndex = exercises.findIndex((ex) => ex.id === over?.id);
-
       setExercises((items) => arrayMove(items, oldIndex, newIndex));
     }
   };
+
+  useEffect(() => {
+    document.body.style.overflow = activeExercise ? 'hidden' : '';
+  }, [activeExercise]);
 
   return (
     <div className="p-4 overflow-x-hidden max-w-full">
@@ -202,13 +206,72 @@ export const PlanDetail = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {exercises.map((exercise) => (
-                <SortableRow key={exercise.id} exercise={exercise} />
+              {sortedExercises.map((exercise) => (
+                <SortableRow
+                  key={exercise.id}
+                  exercise={exercise}
+                  onStart={setActiveExercise}
+                />
               ))}
             </TableBody>
           </Table>
         </SortableContext>
       </DndContext>
+
+      {/* Tracking Modal */}
+      <Dialog
+        open={!!activeExercise}
+        onOpenChange={() => setActiveExercise(null)}
+      >
+        <DialogContent
+          className="sm:max-w-[600px]"
+          onInteractOutside={(e) => e.preventDefault()} // prevents accidental close
+        >
+          {/* Header */}
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">
+              {activeExercise?.name}
+            </DialogTitle>
+          </DialogHeader>
+
+          {/* Content */}
+          <div className="py-2">
+            {activeExercise?.type === 'strength' ? (
+              <StepperStrengthContent
+                sets={activeExercise.sets}
+                onAddSet={() => {
+                  // Add a new empty set (e.g., reps: 0, weight: 0)
+                  const newSets = [
+                    ...activeExercise.sets,
+                    { reps: 0, weight: 0 },
+                  ];
+                  setActiveExercise({ ...activeExercise, sets: newSets });
+                }}
+                onComplete={() => {
+                  // Handle completion logic, e.g., close modal or update status
+                  // Example: mark exercise as Complete and close modal
+                  setExercises((exs) =>
+                    exs.map((ex) =>
+                      ex.id === activeExercise.id
+                        ? {
+                            ...ex,
+                            status: 'Complete',
+                            sets: activeExercise.sets,
+                          }
+                        : ex,
+                    ),
+                  );
+                  setActiveExercise(null);
+                }}
+              />
+            ) : (
+              <div className="text-sm text-muted-foreground">
+                Cardio tracking UI here (e.g., time, speed, start/pause).
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
