@@ -124,16 +124,14 @@ const SortableRow = ({
       </TableCell>
 
       <TableCell>
-        {exercise.status === 'Not Started' ? (
-          <button
-            onClick={() => onStart(exercise)}
-            className="text-sm font-medium text-blue-600 hover:underline"
-          >
-            Start
-          </button>
-        ) : (
-          <StatusPill status={exercise.status} />
-        )}
+        <StatusPill
+          status={exercise.status}
+          onStart={
+            exercise.status === 'Not Started'
+              ? () => onStart(exercise)
+              : undefined
+          }
+        />
       </TableCell>
 
       <TableCell>
