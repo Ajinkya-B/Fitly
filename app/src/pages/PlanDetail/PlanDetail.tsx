@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { GripVertical } from 'lucide-react';
+import { GripVertical, ChevronUp } from 'lucide-react';
 
 import {
   DndContext,
@@ -71,15 +71,6 @@ const initialExercises: Exercise[] = [
   },
   {
     id: '2',
-    type: 'cardio',
-    name: 'Treadmill',
-    time: 20,
-    speed: 8,
-    calories: 220,
-    status: 'In Progress',
-  },
-  {
-    id: '3',
     type: 'strength',
     name: 'Squat',
     sets: [
@@ -87,6 +78,15 @@ const initialExercises: Exercise[] = [
       { reps: 8, weight: 195 },
     ],
     status: 'Complete',
+  },
+  {
+    id: '3',
+    type: 'cardio',
+    name: 'Treadmill',
+    time: 20,
+    speed: 8,
+    calories: 220,
+    status: 'Not Started',
   },
 ];
 
@@ -152,6 +152,8 @@ const SortableRow = ({
 export const PlanDetail = () => {
   const [exercises, setExercises] = useState(initialExercises);
   const [activeExercise, setActiveExercise] = useState<Exercise | null>(null);
+  const [currentSetIndex, setCurrentSetIndex] = useState(0);
+  const [isSortedByStatus, setIsSortedByStatus] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -160,14 +162,22 @@ export const PlanDetail = () => {
     }),
   );
 
-  const sortedExercises = [...exercises].sort((a, b) => {
-    const order = {
-      'In Progress': 0,
-      'Not Started': 1,
-      Complete: 2,
-    };
-    return order[a.status] - order[b.status];
-  });
+  // Handler to sort by status when user clicks header
+  const handleSortByStatus = () => {
+    if (!isSortedByStatus) {
+      const order = {
+        'In Progress': 0,
+        'Not Started': 1,
+        Complete: 2,
+      };
+      const sorted = [...exercises].sort(
+        (a, b) => order[a.status] - order[b.status],
+      );
+      setExercises(sorted);
+      setIsSortedByStatus(true);
+    }
+    // Optional: you can add toggle logic here if you want
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -175,6 +185,8 @@ export const PlanDetail = () => {
       const oldIndex = exercises.findIndex((ex) => ex.id === active.id);
       const newIndex = exercises.findIndex((ex) => ex.id === over?.id);
       setExercises((items) => arrayMove(items, oldIndex, newIndex));
+      // Once manually reordered, sorting is overridden
+      setIsSortedByStatus(false);
     }
   };
 
@@ -198,17 +210,33 @@ export const PlanDetail = () => {
               <TableRow>
                 <TableHead>Exercise</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
+
+                {/* Make Status header clickable to sort */}
+                <TableHead
+                  className="cursor-pointer select-none flex items-center gap-1"
+                  onClick={handleSortByStatus}
+                  title="Click to sort by status"
+                >
+                  Status
+                  {isSortedByStatus && (
+                    <ChevronUp size={16} className="text-muted-foreground" />
+                  )}
+                </TableHead>
+
                 <TableHead>Sets/Time</TableHead>
                 <TableHead>Calories</TableHead>
               </TableRow>
             </TableHeader>
+
             <TableBody>
-              {sortedExercises.map((exercise) => (
+              {exercises.map((exercise) => (
                 <SortableRow
                   key={exercise.id}
                   exercise={exercise}
-                  onStart={setActiveExercise}
+                  onStart={(exercise) => {
+                    setActiveExercise(exercise);
+                    setCurrentSetIndex(0);
+                  }}
                 />
               ))}
             </TableBody>
@@ -219,11 +247,14 @@ export const PlanDetail = () => {
       {/* Tracking Modal */}
       <Dialog
         open={!!activeExercise}
-        onOpenChange={() => setActiveExercise(null)}
+        onOpenChange={() => {
+          setActiveExercise(null);
+          setCurrentSetIndex(0); // Reset index when dialog closes
+        }}
       >
         <DialogContent
           className="sm:max-w-[600px]"
-          onInteractOutside={(e) => e.preventDefault()} // prevents accidental close
+          onInteractOutside={(e) => e.preventDefault()}
         >
           {/* Header */}
           <DialogHeader>
@@ -237,17 +268,17 @@ export const PlanDetail = () => {
             {activeExercise?.type === 'strength' ? (
               <StepperStrengthContent
                 sets={activeExercise.sets}
+                currentSetIndex={currentSetIndex}
+                onSetIndexChange={setCurrentSetIndex}
                 onAddSet={() => {
-                  // Add a new empty set (e.g., reps: 0, weight: 0)
                   const newSets = [
                     ...activeExercise.sets,
                     { reps: 0, weight: 0 },
                   ];
                   setActiveExercise({ ...activeExercise, sets: newSets });
+                  setCurrentSetIndex(newSets.length - 1); // Go to new set
                 }}
                 onComplete={() => {
-                  // Handle completion logic, e.g., close modal or update status
-                  // Example: mark exercise as Complete and close modal
                   setExercises((exs) =>
                     exs.map((ex) =>
                       ex.id === activeExercise.id
@@ -260,6 +291,19 @@ export const PlanDetail = () => {
                     ),
                   );
                   setActiveExercise(null);
+                  setCurrentSetIndex(0);
+                }}
+                onUpdateSet={(index, field, value) => {
+                  if (!activeExercise || activeExercise.type !== 'strength')
+                    return;
+
+                  const updatedSets = [...activeExercise.sets];
+                  updatedSets[index] = {
+                    ...updatedSets[index],
+                    [field]: value,
+                  };
+
+                  setActiveExercise({ ...activeExercise, sets: updatedSets });
                 }}
               />
             ) : (

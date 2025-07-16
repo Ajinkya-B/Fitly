@@ -16,9 +16,13 @@ export const StatusPill = ({ status, onStart }: StatusPillProps) => {
       <button
         onClick={onStart}
         className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-blue-50 px-3 py-1 font-semibold shadow-sm
-                   hover:bg-blue-600 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+             text-gray-800 group
+             hover:bg-blue-600 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
       >
-        <SquareArrowOutUpRight className="text-blue-600" size={18} />
+        <SquareArrowOutUpRight
+          size={18}
+          className="text-blue-600 group-hover:text-white"
+        />
         Start
       </button>
     );

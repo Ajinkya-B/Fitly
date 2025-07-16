@@ -1,26 +1,31 @@
 import { ChevronLeft, ChevronRight, Plus, Check } from 'lucide-react';
-import { useState } from 'react';
 
 export const StepperStrengthContent = ({
   sets,
+  currentSetIndex,
+  onSetIndexChange,
   onAddSet,
   onComplete,
+  onUpdateSet,
 }: {
   sets: { reps: number; weight: number }[];
+  currentSetIndex: number;
+  onSetIndexChange: (index: number) => void;
   onAddSet: () => void;
   onComplete: () => void;
+  onUpdateSet: (index: number, field: 'weight' | 'reps', value: number) => void;
 }) => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const isLastStep = currentStep === sets.length - 1;
+  const isLastStep = currentSetIndex === sets.length - 1;
+  console.log('current set:', sets[currentSetIndex]);
 
   return (
     <div className="select-none max-w-md mx-auto">
       <div className="flex items-center gap-4">
         {/* Left arrow */}
         <button
-          onClick={() => setCurrentStep((s) => Math.max(s - 1, 0))}
+          onClick={() => onSetIndexChange(Math.max(currentSetIndex - 1, 0))}
           className={`p-2 rounded-md bg-gray-200 ${
-            currentStep === 0 ? 'invisible' : ''
+            currentSetIndex === 0 ? 'invisible' : ''
           }`}
           aria-label="Previous set"
           type="button"
@@ -31,7 +36,7 @@ export const StepperStrengthContent = ({
         {/* Input container */}
         <div className="border border-muted rounded-lg p-6 flex flex-col gap-6 flex-grow">
           <div className="mb-4 text-center font-medium text-muted-foreground">
-            {`Editing Set ${currentStep + 1}`}
+            {`Editing Set ${currentSetIndex + 1}`}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -39,7 +44,10 @@ export const StepperStrengthContent = ({
             <input
               type="number"
               className="border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              defaultValue={sets[currentStep].weight}
+              value={sets[currentSetIndex].weight}
+              onChange={(e) =>
+                onUpdateSet(currentSetIndex, 'weight', Number(e.target.value))
+              }
             />
           </div>
 
@@ -48,14 +56,19 @@ export const StepperStrengthContent = ({
             <input
               type="number"
               className="border border-input rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-              defaultValue={sets[currentStep].reps}
+              value={sets[currentSetIndex].reps}
+              onChange={(e) =>
+                onUpdateSet(currentSetIndex, 'reps', Number(e.target.value))
+              }
             />
           </div>
         </div>
 
         {/* Right arrow */}
         <button
-          onClick={() => setCurrentStep((s) => s + 1)}
+          onClick={() =>
+            onSetIndexChange(Math.min(currentSetIndex + 1, sets.length - 1))
+          }
           className={`p-2 rounded-md bg-gray-200 ${
             isLastStep ? 'invisible' : ''
           }`}
