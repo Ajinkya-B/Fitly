@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { GripVertical, ChevronUp } from 'lucide-react';
+import { GripVertical, ChevronUp, Plus, RefreshCcw, Video } from 'lucide-react';
 
 import {
   DndContext,
@@ -32,7 +32,25 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { StatusPill, StepperStrengthContent } from '@/components';
+import {
+  StatusPill,
+  StepperStrengthContent,
+  WeeklyCalendar,
+} from '@/components';
+
+import { Button } from '@/components/ui/button';
+import {
+  Sheet,
+  SheetTrigger,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 type StrengthExercise = {
   id: string;
@@ -42,6 +60,7 @@ type StrengthExercise = {
     reps: number;
     weight: number;
   }[];
+  videoUrl?: string;
   status: 'Not Started' | 'In Progress' | 'Complete';
 };
 
@@ -52,6 +71,7 @@ type CardioExercise = {
   time: number;
   speed?: number;
   calories?: number;
+  videoUrl?: string;
   status: 'Not Started' | 'In Progress' | 'Complete';
 };
 
@@ -68,6 +88,7 @@ const initialExercises: Exercise[] = [
       { reps: 4, weight: 155 },
     ],
     status: 'Not Started',
+    videoUrl: 'https://www.youtube.com/embed/gRVjAtPip0Y',
   },
   {
     id: '2',
@@ -78,6 +99,7 @@ const initialExercises: Exercise[] = [
       { reps: 8, weight: 195 },
     ],
     status: 'Complete',
+    videoUrl: 'https://www.youtube.com/embed/YaXPRqUwItQ',
   },
   {
     id: '3',
@@ -87,15 +109,18 @@ const initialExercises: Exercise[] = [
     speed: 8,
     calories: 220,
     status: 'Not Started',
+    videoUrl: 'https://www.youtube.com/embed/1SKaYyqQf1Q',
   },
 ];
 
 const SortableRow = ({
   exercise,
   onStart,
+  setPreviewVideo,
 }: {
   exercise: Exercise;
   onStart: (exercise: Exercise) => void;
+  setPreviewVideo: (url: string | null) => void;
 }) => {
   const {
     attributes,
@@ -145,6 +170,47 @@ const SortableRow = ({
       <TableCell>
         {exercise.type === 'cardio' ? (exercise.calories ?? '-') : '-'}
       </TableCell>
+
+      <TableCell className="flex gap-2">
+        {/* Video Preview Button with Tooltip */}
+        {exercise.videoUrl && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setPreviewVideo(exercise.videoUrl!)}
+              >
+                <Video className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>View Technique</TooltipContent>
+          </Tooltip>
+        )}
+
+        {/* Swap Button with Tooltip FIXED */}
+        <Sheet>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <RefreshCcw className="w-4 h-4" />
+                </Button>
+              </SheetTrigger>
+            </TooltipTrigger>
+            <TooltipContent>Swap Exercise</TooltipContent>
+          </Tooltip>
+
+          <SheetContent side="right">
+            <SheetHeader>
+              <SheetTitle>Swap Exercise</SheetTitle>
+            </SheetHeader>
+            <div className="py-4 text-sm text-muted-foreground">
+              Show a list of alternative exercises for: <b>{exercise.name}</b>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </TableCell>
     </TableRow>
   );
 };
@@ -154,6 +220,7 @@ export const PlanDetail = () => {
   const [activeExercise, setActiveExercise] = useState<Exercise | null>(null);
   const [currentSetIndex, setCurrentSetIndex] = useState(0);
   const [isSortedByStatus, setIsSortedByStatus] = useState(false);
+  const [previewVideo, setPreviewVideo] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -196,6 +263,16 @@ export const PlanDetail = () => {
 
   return (
     <div className="p-4 overflow-x-hidden max-w-full">
+      <WeeklyCalendar />
+
+      {/* Add Custom Exercise Button */}
+      <div className="flex justify-end my-4">
+        <Button variant="default" size="sm">
+          <Plus className="w-4 h-4 mr-1" />
+          Add Custom Exercise
+        </Button>
+      </div>
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -210,8 +287,6 @@ export const PlanDetail = () => {
               <TableRow>
                 <TableHead>Exercise</TableHead>
                 <TableHead>Type</TableHead>
-
-                {/* Make Status header clickable to sort */}
                 <TableHead
                   className="cursor-pointer select-none flex items-center gap-1"
                   onClick={handleSortByStatus}
@@ -222,9 +297,9 @@ export const PlanDetail = () => {
                     <ChevronUp size={16} className="text-muted-foreground" />
                   )}
                 </TableHead>
-
                 <TableHead>Sets/Time</TableHead>
                 <TableHead>Calories</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -233,10 +308,11 @@ export const PlanDetail = () => {
                 <SortableRow
                   key={exercise.id}
                   exercise={exercise}
-                  onStart={(exercise) => {
-                    setActiveExercise(exercise);
+                  onStart={(ex) => {
+                    setActiveExercise(ex);
                     setCurrentSetIndex(0);
                   }}
+                  setPreviewVideo={setPreviewVideo}
                 />
               ))}
             </TableBody>
@@ -244,7 +320,7 @@ export const PlanDetail = () => {
         </SortableContext>
       </DndContext>
 
-      {/* Tracking Modal */}
+      {/* Tracking Modal (Unchanged) */}
       <Dialog
         open={!!activeExercise}
         onOpenChange={() => {
@@ -256,14 +332,12 @@ export const PlanDetail = () => {
           className="sm:max-w-[600px]"
           onInteractOutside={(e) => e.preventDefault()}
         >
-          {/* Header */}
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold">
               {activeExercise?.name}
             </DialogTitle>
           </DialogHeader>
 
-          {/* Content */}
           <div className="py-2">
             {activeExercise?.type === 'strength' ? (
               <StepperStrengthContent
@@ -276,7 +350,7 @@ export const PlanDetail = () => {
                     { reps: 0, weight: 0 },
                   ];
                   setActiveExercise({ ...activeExercise, sets: newSets });
-                  setCurrentSetIndex(newSets.length - 1); // Go to new set
+                  setCurrentSetIndex(newSets.length - 1);
                 }}
                 onComplete={() => {
                   setExercises((exs) =>
@@ -296,13 +370,11 @@ export const PlanDetail = () => {
                 onUpdateSet={(index, field, value) => {
                   if (!activeExercise || activeExercise.type !== 'strength')
                     return;
-
                   const updatedSets = [...activeExercise.sets];
                   updatedSets[index] = {
                     ...updatedSets[index],
                     [field]: value,
                   };
-
                   setActiveExercise({ ...activeExercise, sets: updatedSets });
                 }}
               />
@@ -311,6 +383,22 @@ export const PlanDetail = () => {
                 Cardio tracking UI here (e.g., time, speed, start/pause).
               </div>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!previewVideo} onOpenChange={() => setPreviewVideo(null)}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Exercise Technique</DialogTitle>
+          </DialogHeader>
+          <div className="aspect-video w-full">
+            <iframe
+              src={previewVideo || ''}
+              title="Exercise Video"
+              allowFullScreen
+              className="w-full h-full rounded-md"
+            />
           </div>
         </DialogContent>
       </Dialog>
