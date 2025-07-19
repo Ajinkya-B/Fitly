@@ -1,3 +1,5 @@
+import { JSX, useState } from 'react';
+import { useAppContext } from '@/hooks/useAppContext';
 import {
   Dumbbell,
   HeartPulse,
@@ -7,7 +9,6 @@ import {
   ActivitySquare,
   StretchHorizontal,
 } from 'lucide-react';
-import { JSX } from 'react';
 
 const iconMap: Record<string, JSX.Element> = {
   Push: <Dumbbell size={18} />,
@@ -19,16 +20,6 @@ const iconMap: Record<string, JSX.Element> = {
   Rest: <BedDouble size={18} />,
 };
 
-const workoutSchedule = [
-  'Push',
-  'Pull',
-  'Legs',
-  'Rest',
-  'Back',
-  'Abs',
-  'Cardio',
-];
-
 const getStatus = (index: number): string => {
   if (index === 0) return 'Today';
   if (index < 0) return 'Completed';
@@ -37,6 +28,8 @@ const getStatus = (index: number): string => {
 
 export const WeeklyCalendar = () => {
   const today = new Date();
+  const { fetchDayExercises, workoutSchedule } = useAppContext();
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   return (
     <div className="grid grid-cols-7 gap-2 w-full pb-4">
@@ -45,13 +38,18 @@ export const WeeklyCalendar = () => {
         date.setDate(today.getDate() + index);
 
         const isToday = index === 0;
+        const isSelected = index === selectedIndex;
         const status = getStatus(index);
 
         return (
           <div
             key={index}
             className={`flex flex-col items-center justify-between gap-1 rounded-xl p-3 shadow-sm transition border bg-muted text-center
-              ${isToday ? 'border-primary ring-2 ring-primary/50' : 'border-border'}`}
+              ${isSelected ? 'border-primary ring-2 ring-primary/50' : 'border-border'}`}
+            onClick={() => {
+              setSelectedIndex(index);
+              fetchDayExercises(date);
+            }}
           >
             {/* Top: Date and status */}
             <div className="text-xs text-muted-foreground">
@@ -83,11 +81,6 @@ export const WeeklyCalendar = () => {
             >
               {status}
             </div>
-
-            {/* Optional: Progress bar */}
-            {/* <div className="mt-1 h-1 w-full bg-gray-200 rounded-full">
-              <div className="h-full w-1/2 bg-primary rounded-full" />
-            </div> */}
           </div>
         );
       })}

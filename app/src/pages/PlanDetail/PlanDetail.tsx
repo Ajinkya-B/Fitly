@@ -13,10 +13,11 @@ import { Exercise } from '@/types';
 import { useAppContext } from '@/hooks';
 
 export const PlanDetail = () => {
-  const { fetchDayExercises } = useAppContext();
+  const { fetchDayExercises, fetchWorkoutSchedule } = useAppContext();
 
   useEffect(() => {
     fetchDayExercises();
+    fetchWorkoutSchedule();
   }, []);
 
   const [activeExercise, setActiveExercise] = useState<Exercise | null>(null);

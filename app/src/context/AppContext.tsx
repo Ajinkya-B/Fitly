@@ -6,7 +6,9 @@ interface AppContextProps {
   setUser: (user: string | null) => void;
   dayExercises: Exercise[];
   setDayExercises: (exercises: Exercise[]) => void;
-  fetchDayExercises: () => void;
+  fetchDayExercises: (day?: Date) => void;
+  workoutSchedule: string[];
+  fetchWorkoutSchedule: () => void;
 }
 
 export const AppContext = createContext<AppContextProps | undefined>(undefined);
@@ -14,8 +16,10 @@ export const AppContext = createContext<AppContextProps | undefined>(undefined);
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<string | null>(null);
   const [dayExercises, setDayExercises] = useState<Exercise[]>([]);
+  const [workoutSchedule, setWorkoutSchedule] = useState<string[]>([]);
 
-  const fetchDayExercises = () => {
+  const fetchDayExercises = (day: Date = new Date()) => {
+    console.log(`Fetching exercises for ${day.toDateString()}`);
     // send dummy data for now
     setDayExercises([
       {
@@ -54,6 +58,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     ]);
   };
 
+  const fetchWorkoutSchedule = () => {
+    setWorkoutSchedule([
+      'Push',
+      'Pull',
+      'Legs',
+      'Rest',
+      'Back',
+      'Abs',
+      'Cardio',
+    ]);
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -62,6 +78,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         dayExercises,
         setDayExercises,
         fetchDayExercises,
+        workoutSchedule,
+        fetchWorkoutSchedule,
       }}
     >
       {children}
