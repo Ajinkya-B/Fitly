@@ -1,14 +1,19 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import dotenv from 'dotenv';
+import mcpRouter from './routes/mcp';
+
+dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
-app.use(express.json());
+app.use(cors());
+app.use(bodyParser.json());
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello from Express + TypeScript!');
-});
+app.use('/mcp', mcpRouter);
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`✅ MCP backend running on http://localhost:${PORT}`);
 });

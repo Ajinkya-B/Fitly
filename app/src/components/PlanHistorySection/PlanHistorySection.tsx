@@ -9,6 +9,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Sparkles } from 'lucide-react';
+
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -221,7 +223,10 @@ export const PlanHistorySection = () => {
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogTrigger asChild>
-          <button className="generate-btn text-sm">Generate New Plan</button>
+          <button className="generate-btn text-sm flex align-center items-center">
+            <Sparkles className="mr-2 h-4 w-4" />
+            Generate Plan
+          </button>
         </DialogTrigger>
 
         <DialogContent className="sm:max-w-md">
