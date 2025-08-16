@@ -1,0 +1,1 @@
+export { workoutPlanGenerator } from './workoutPlanGenerator';
