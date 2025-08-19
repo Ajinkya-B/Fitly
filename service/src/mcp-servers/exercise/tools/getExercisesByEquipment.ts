@@ -1,5 +1,9 @@
 import fetch from 'node-fetch';
-import { ExerciseApiResponse, FormattedResponse } from '../types';
+import {
+  EquipmentParams,
+  ExerciseApiResponse,
+  FormattedResponse,
+} from '../types';
 import {
   EXERCISE_DB_ENDPOINTS,
   DEFAULT_OFFSET,
@@ -14,13 +18,7 @@ export async function getExercisesByEquipment({
   limit = 10,
   sortBy = 'targetMuscles',
   sortOrder = 'desc',
-}: {
-  equipment: string;
-  offset?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}): Promise<FormattedResponse> {
+}: EquipmentParams): Promise<FormattedResponse> {
   try {
     const url = new URL(EXERCISE_DB_ENDPOINTS.byEquipment(equipment));
     url.searchParams.set('offset', (offset ?? DEFAULT_OFFSET).toString());

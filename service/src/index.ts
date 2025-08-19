@@ -5,6 +5,7 @@ import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import generateWorkoutRouter from './routes/generateWorkout';
+import { bootstrap } from './mcp-host/bootstrap';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -22,7 +23,13 @@ app.get('/', (_req, res) => {
   res.send('MCP Server is running');
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`✅ MCP backend running on http://localhost:${PORT}`);
-});
+// Ensure MCP servers are ready first
+bootstrap()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`✅ MCP backend running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('❌ Failed to bootstrap MCP host', err);
+  });

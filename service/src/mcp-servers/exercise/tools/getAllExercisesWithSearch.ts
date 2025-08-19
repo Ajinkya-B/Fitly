@@ -11,15 +11,8 @@ import {
   ExerciseApiResponse,
   FormattedExercise,
   FormattedResponse,
+  SearchParams,
 } from '../types';
-
-export type GetAllExercisesParams = {
-  offset?: number;
-  limit?: number;
-  search?: string;
-  sortBy?: 'name' | 'exerciseId' | 'targetMuscles' | 'bodyParts' | 'equipments';
-  sortOrder?: 'asc' | 'desc';
-};
 
 export const getAllExercisesWithSearch = async ({
   offset = DEFAULT_OFFSET,
@@ -27,7 +20,7 @@ export const getAllExercisesWithSearch = async ({
   search = '',
   sortBy = DEFAULT_SORT_BY,
   sortOrder = DEFAULT_SORT_ORDER,
-}: GetAllExercisesParams): Promise<FormattedResponse> => {
+}: SearchParams): Promise<FormattedResponse> => {
   try {
     const url = new URL(EXERCISE_DB_ENDPOINTS.getAll); // uses new getAll endpoint
 

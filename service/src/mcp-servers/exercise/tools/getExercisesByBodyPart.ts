@@ -6,7 +6,11 @@ import {
   DEFAULT_SORT_BY,
   DEFAULT_SORT_ORDER,
 } from '../config';
-import { ExerciseApiResponse, FormattedResponse } from '../types';
+import {
+  BodyPartParams,
+  ExerciseApiResponse,
+  FormattedResponse,
+} from '../types';
 
 export async function getExercisesByBodyPart({
   bodyPart,
@@ -14,13 +18,7 @@ export async function getExercisesByBodyPart({
   limit = 10,
   sortBy = 'targetMuscles',
   sortOrder = 'desc',
-}: {
-  bodyPart: string;
-  offset?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}): Promise<FormattedResponse> {
+}: BodyPartParams): Promise<FormattedResponse> {
   const url = new URL(EXERCISE_DB_ENDPOINTS.byBodyPart(bodyPart));
   url.searchParams.set('offset', (offset ?? DEFAULT_OFFSET).toString());
   url.searchParams.set('limit', (limit ?? DEFAULT_LIMIT).toString());

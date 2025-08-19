@@ -38,3 +38,15 @@ export interface FormattedResponse {
   nextPage: string | null;
   exercises: FormattedExercise[];
 }
+
+type PaginationParams = {
+  offset?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+};
+
+export type BodyPartParams = PaginationParams & { bodyPart: string };
+export type EquipmentParams = PaginationParams & { equipment: string };
+export type TargetParams = PaginationParams & { target: string };
+export type SearchParams = PaginationParams & { search?: string };

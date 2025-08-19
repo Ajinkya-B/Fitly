@@ -1,10 +1,11 @@
 import { createChatCompletion } from '../../../config';
 import { parseGPTJSON } from '../../../utils';
+import { WorkoutPlan } from '../types';
 
 export async function workoutPlanGenerator(params: {
   userData: Record<string, unknown>;
   exercises: unknown[];
-}) {
+}): Promise<WorkoutPlan> {
   const finalPrompt = `
     Using the following exercises and user info, create a complete WorkoutPlan JSON object:
 
@@ -29,5 +30,5 @@ export async function workoutPlanGenerator(params: {
   ]);
 
   const raw = planCompletion.choices[0].message?.content ?? '';
-  return parseGPTJSON(raw);
+  return parseGPTJSON(raw) as WorkoutPlan; // cast to strict type here
 }

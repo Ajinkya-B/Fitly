@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import { ExerciseApiResponse, FormattedResponse } from '../types';
+import { ExerciseApiResponse, FormattedResponse, SearchParams } from '../types';
 import {
   EXERCISE_DB_ENDPOINTS,
   DEFAULT_OFFSET,
@@ -14,13 +14,7 @@ export async function searchExercise({
   limit = DEFAULT_LIMIT,
   sortBy = DEFAULT_SORT_BY,
   sortOrder = DEFAULT_SORT_ORDER,
-}: {
-  search?: string;
-  offset?: number;
-  limit?: number;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}): Promise<FormattedResponse> {
+}: SearchParams): Promise<FormattedResponse> {
   try {
     const url = new URL(EXERCISE_DB_ENDPOINTS.search);
     url.searchParams.set('search', search);
