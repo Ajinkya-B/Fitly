@@ -135,9 +135,10 @@ export async function orchestrate<
       lastOutput,
     });
 
-    currentInput = `Previous tool (${selectedTool.name}) output: ${JSON.stringify(
-      lastOutput,
-    )}\nContinue planning if needed.`;
+    currentInput = `
+      The previous tool (${selectedTool.name}) produced this output:
+      ${JSON.stringify(lastOutput)}
+    `;
   }
 
   return {

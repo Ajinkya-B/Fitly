@@ -1,10 +1,33 @@
 import * as Tools from './tools';
+import type { MCPServer, ToolDefinition } from '../../types';
 import type {
-  MCPServer,
-  ToolInput,
-  ToolOutput,
-  ToolDefinition,
-} from '../../types';
+  FitnessRoadmap,
+  GenerateRoadmapParams,
+  WeeklyPlan,
+  WorkoutPlan,
+} from './types';
+
+// Map tool names to their expected parameter types
+type ToolParams = {
+  workoutPlanGenerator: {
+    userData: Record<string, unknown>;
+    exercises: unknown[];
+  };
+  generateRoadmap: { params: GenerateRoadmapParams };
+  generateWeeklyPlan: {
+    userData: Record<string, unknown>;
+    roadmapPhase: string;
+    exercises: unknown[];
+    weekNumber: number;
+  };
+};
+
+// Map tool names to their return/output types
+type ToolReturnTypes = {
+  workoutPlanGenerator: WorkoutPlan;
+  generateRoadmap: FitnessRoadmap;
+  generateWeeklyPlan: WeeklyPlan;
+};
 
 export class FitnessServer implements MCPServer {
   private tools: Record<string, ToolDefinition> = {
@@ -16,17 +39,38 @@ export class FitnessServer implements MCPServer {
         exercises: 'Array of exercise objects',
       },
     },
+    generateRoadmap: {
+      name: 'generateRoadmap',
+      description:
+        'Generates a multi-week fitness roadmap (phases, focus, duration)',
+      parameters: {
+        userId: 'string',
+        answers: 'Answers',
+        durationWeeks: 'number',
+      },
+    },
+    generateWeeklyPlan: {
+      name: 'generateWeeklyPlan',
+      description: 'Generates a detailed weekly workout plan given a roadmap',
+      parameters: {
+        weekNumber: 'number',
+        roadmap: 'FitnessRoadmap',
+      },
+    },
   };
 
   async getTools(): Promise<ToolDefinition[]> {
     return Object.values(this.tools);
   }
 
-  async executeTool(name: string, params: ToolInput): Promise<ToolOutput> {
-    const tool = Tools[name as keyof typeof Tools];
+  async executeTool<K extends keyof ToolParams>(
+    name: K,
+    params: ToolParams[K],
+  ): Promise<ToolReturnTypes[K]> {
+    const tool = Tools[name as keyof typeof Tools] as (
+      args: ToolParams[K],
+    ) => Promise<ToolReturnTypes[K]>;
     if (!tool) throw new Error(`Tool "${name}" not found.`);
-
-    // Cast ToolInput to the expected type internally
-    return (await tool(params as Parameters<typeof tool>[0])) as ToolOutput;
+    return await tool(params);
   }
 }

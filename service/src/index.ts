@@ -5,6 +5,8 @@ import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import generateWorkoutRouter from './routes/generateWorkout';
+import getUserFitnessRoadmapRouter from './routes/getUserFitnessRoadmap';
+import getUserWeeklyPlanRouter from './routes/getUserWeeklyPlan';
 import { bootstrap } from './mcp-host/bootstrap';
 
 const app = express();
@@ -17,6 +19,8 @@ app.use(bodyParser.json());
 
 // Routes
 app.use('/api', generateWorkoutRouter);
+app.use('/api/get-user-fitness-roadmap', getUserFitnessRoadmapRouter);
+app.use('/api/get-user-weekly-plan', getUserWeeklyPlanRouter);
 
 // Health check or root
 app.get('/', (_req, res) => {

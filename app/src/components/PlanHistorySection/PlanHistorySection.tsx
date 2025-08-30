@@ -56,8 +56,9 @@ type Answers = {
   goal?: string[];
   facilities?: string;
   daysPerWeek?: number;
-  limitations?: string;
   activityLevel?: string;
+  experienceLevel?: 'beginner' | 'intermediate' | 'advanced';
+  extraContext?: string;
 };
 
 const steps: Step[] = [
@@ -93,12 +94,6 @@ const steps: Step[] = [
     type: 'input',
     label: 'How many days per week can you work out?',
     placeholder: 'e.g., 4',
-  },
-  {
-    key: 'limitations',
-    type: 'singleSelect',
-    label: 'Do you have any injuries or limitations?',
-    options: ['No', 'Yes'],
   },
   {
     key: 'activityLevel',
@@ -169,7 +164,7 @@ export const PlanHistorySection = () => {
       return Array.isArray(answers[key]) && answers[key]!.length > 0;
     }
     if (step.type === 'singleSelect') {
-      const key = step.key as 'facilities' | 'limitations' | 'activityLevel';
+      const key = step.key as 'facilities' | 'activityLevel';
       return !!answers[key];
     }
     if (step.type === 'input') {
@@ -439,10 +434,7 @@ export const PlanHistorySection = () => {
               <div className="flex flex-wrap gap-2">
                 {step.options.map((opt) => {
                   // Assert key as one of the singleselect keys in Answers
-                  const key = step.key as
-                    | 'facilities'
-                    | 'limitations'
-                    | 'activityLevel';
+                  const key = step.key as 'facilities' | 'activityLevel';
 
                   const selected = answers[key] === opt;
                   return (
