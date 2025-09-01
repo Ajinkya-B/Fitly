@@ -1,4 +1,4 @@
-import { JSX, useState } from 'react';
+import { JSX, useEffect, useState } from 'react';
 import { useAppContext } from '@/hooks/useAppContext';
 import {
   Dumbbell,
@@ -8,6 +8,8 @@ import {
   ShieldCheck,
   ActivitySquare,
   StretchHorizontal,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 const iconMap: Record<string, JSX.Element> = {
@@ -20,70 +22,192 @@ const iconMap: Record<string, JSX.Element> = {
   Rest: <BedDouble size={18} />,
 };
 
-const getStatus = (index: number): string => {
-  if (index === 0) return 'Today';
-  if (index < 0) return 'Completed';
+const getStatus = (date: Date, today: Date): string => {
+  const todayStr = today.toDateString();
+  const dateStr = date.toDateString();
+  if (dateStr === todayStr) return 'Today';
+  if (date < today) return 'Completed';
   return 'Upcoming';
+};
+
+// Helper: get Monday of a given week
+const getWeekStart = (date: Date) => {
+  const d = new Date(date);
+  const day = d.getDay(); // 0 = Sunday, 1 = Monday...
+  const diff = d.getDate() - (day === 0 ? 6 : day - 1); // adjust to Monday
+  d.setDate(diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
 };
 
 export const WeeklyCalendar = () => {
   const today = new Date();
-  const { fetchDayExercises, workoutSchedule } = useAppContext();
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const { weeklySchedule, fetchDayExercises, getWeeklyFocusLabels } =
+    useAppContext();
+  const [weeklyFocusLabels, setWeeklyFocusLabels] = useState<string[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState(() => {
+    const weekStart = getWeekStart(today);
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(weekStart);
+      date.setDate(weekStart.getDate() + i);
+      return date;
+    });
+    const todayStr = today.toDateString();
+    const todayIdx = days.findIndex((d) => d.toDateString() === todayStr);
+    return todayIdx !== -1 ? todayIdx : 0;
+  });
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  useEffect(() => {
+    setWeeklyFocusLabels(getWeeklyFocusLabels());
+  }, [getWeeklyFocusLabels, weeklySchedule]);
+
+  // Compute the visible week range
+  const weekStart = getWeekStart(today);
+  const displayStart = new Date(weekStart);
+  displayStart.setDate(displayStart.getDate() + weekOffset * 7);
+
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(displayStart);
+    date.setDate(displayStart.getDate() + i);
+    return date;
+  });
 
   return (
-    <div className="grid grid-cols-7 gap-2 w-full pb-4">
-      {workoutSchedule.map((type, index) => {
-        const date = new Date(today);
-        date.setDate(today.getDate() + index);
+    <div className="w-full">
+      {/* Header with arrows */}
+      <div className="flex justify-between items-center mb-3">
+        <button
+          onClick={() => setWeekOffset((prev) => prev - 1)}
+          className="p-1 rounded-full hover:bg-muted"
+        >
+          <ChevronLeft size={20} />
+        </button>
+        <div className="text-sm font-medium">
+          {displayStart.toLocaleDateString(undefined, {
+            month: 'short',
+            day: 'numeric',
+          })}{' '}
+          -{' '}
+          {days[6].toLocaleDateString(undefined, {
+            month: 'short',
+            day: 'numeric',
+          })}
+        </div>
+        <button
+          onClick={() => setWeekOffset((prev) => prev + 1)}
+          className="p-1 rounded-full hover:bg-muted"
+        >
+          <ChevronRight size={20} />
+        </button>
+      </div>
 
-        const isToday = index === 0;
-        const isSelected = index === selectedIndex;
-        const status = getStatus(index);
+      {/* Desktop: 7-column grid */}
+      <div className="hidden md:grid grid-cols-7 gap-2 pb-4">
+        {days.map((date, index) => {
+          const type = weeklyFocusLabels[index % weeklyFocusLabels.length]; // cycle if shorter
+          const isSelected = index === selectedIndex;
+          const status = getStatus(date, today);
 
-        return (
-          <div
-            key={index}
-            className={`flex flex-col items-center justify-between gap-1 rounded-xl p-3 shadow-sm transition border bg-muted text-center
-              ${isSelected ? 'border-primary ring-2 ring-primary/50' : 'border-border'}`}
-            onClick={() => {
-              setSelectedIndex(index);
-              fetchDayExercises(date);
-            }}
-          >
-            {/* Top: Date and status */}
-            <div className="text-xs text-muted-foreground">
-              {isToday
-                ? 'Today'
-                : date.toLocaleDateString(undefined, { weekday: 'short' })}
-            </div>
-            <div className="text-sm font-semibold">
-              {date.toLocaleDateString(undefined, {
-                month: 'short',
-                day: 'numeric',
-              })}
-            </div>
-
-            {/* Middle: Icon and workout type */}
-            <div className="mt-1 flex items-center justify-center gap-1 text-sm text-primary">
-              {iconMap[type]} <span>{type}</span>
-            </div>
-
-            {/* Bottom: Status badge */}
+          return (
             <div
-              className={`mt-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-                type === 'Rest'
-                  ? 'bg-gray-200 text-gray-600'
-                  : isToday
-                    ? 'bg-blue-100 text-blue-600'
-                    : 'bg-green-100 text-green-700'
-              }`}
+              key={index}
+              className={`flex flex-col items-center justify-between gap-1 rounded-xl p-3 shadow-sm transition border bg-muted text-center
+                ${isSelected ? 'border-primary ring-2 ring-primary/50' : 'border-border'}
+                ${status === 'Completed' ? 'opacity-65' : ''}`}
+              onClick={() => {
+                setSelectedIndex(index);
+                fetchDayExercises(date);
+              }}
             >
-              {status}
+              {/* Top: weekday */}
+              <div className="text-xs text-muted-foreground">
+                {status === 'Today'
+                  ? 'Today'
+                  : date.toLocaleDateString(undefined, { weekday: 'short' })}
+              </div>
+              <div className="text-sm font-semibold">
+                {date.toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </div>
+
+              {/* Middle: Icon + type */}
+              <div className="mt-1 flex items-center justify-center gap-1 text-sm text-primary">
+                {iconMap[type]} <span>{type}</span>
+              </div>
+
+              {/* Bottom: Status badge */}
+              <div
+                className={`mt-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                  type === 'Rest'
+                    ? 'bg-gray-200 text-gray-600'
+                    : status === 'Today'
+                      ? 'bg-blue-100 text-blue-600'
+                      : status === 'Upcoming'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-gray-100 text-gray-500'
+                }`}
+              >
+                {status}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+
+      {/* Mobile: horizontal scroll */}
+      <div className="flex md:hidden overflow-x-auto gap-3 pb-3 snap-x snap-mandatory p-1">
+        {days.map((date, index) => {
+          const type = weeklyFocusLabels[index % weeklyFocusLabels.length];
+          const isSelected = index === selectedIndex;
+          const status = getStatus(date, today);
+
+          return (
+            <div
+              key={index}
+              className={`flex-shrink-0 w-[120px] snap-center flex flex-col items-center justify-between gap-1 rounded-xl p-3 shadow-sm transition border bg-muted text-center
+                ${isSelected ? 'border-primary ring-2 ring-primary/50' : 'border-border'}
+                ${status === 'Completed' ? 'opacity-65' : ''}`}
+              onClick={() => {
+                setSelectedIndex(index);
+                fetchDayExercises(date);
+              }}
+            >
+              <div className="text-xs text-muted-foreground">
+                {status === 'Today'
+                  ? 'Today'
+                  : date.toLocaleDateString(undefined, { weekday: 'short' })}
+              </div>
+              <div className="text-sm font-semibold">
+                {date.toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </div>
+
+              <div className="mt-1 flex items-center justify-center gap-1 text-sm text-primary">
+                {iconMap[type]} <span>{type}</span>
+              </div>
+
+              <div
+                className={`mt-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                  type === 'Rest'
+                    ? 'bg-gray-200 text-gray-600'
+                    : status === 'Today'
+                      ? 'bg-blue-100 text-blue-600'
+                      : status === 'Upcoming'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-gray-100 text-gray-500'
+                }`}
+              >
+                {status}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };

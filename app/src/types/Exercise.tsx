@@ -1,24 +1,14 @@
-type StrengthExercise = {
+export type Exercise = {
   id: string;
-  type: 'strength';
+  type: 'strength' | 'cardio';
   name: string;
-  sets: {
+  sets?: {
     reps: number;
     weight: number;
   }[];
+  duration?: number; // in minutes for cardio
+  speed?: number; // in km/h for cardio
+  calories?: number; // for cardio
   videoUrl?: string;
   status: 'Not Started' | 'In Progress' | 'Complete';
 };
-
-type CardioExercise = {
-  id: string;
-  type: 'cardio';
-  name: string;
-  time: number;
-  speed?: number;
-  calories?: number;
-  videoUrl?: string;
-  status: 'Not Started' | 'In Progress' | 'Complete';
-};
-
-export type Exercise = StrengthExercise | CardioExercise;

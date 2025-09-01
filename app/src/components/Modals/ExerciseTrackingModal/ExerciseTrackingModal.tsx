@@ -44,12 +44,12 @@ export const ExerciseTrackingModal = ({
         <div className="py-2">
           {activeExercise?.type === 'strength' ? (
             <StepperStrengthContent
-              sets={activeExercise.sets}
+              sets={activeExercise.sets ?? []}
               currentSetIndex={currentSetIndex}
               onSetIndexChange={setCurrentSetIndex}
               onAddSet={() => {
                 const newSets = [
-                  ...activeExercise.sets,
+                  ...(activeExercise.sets ?? []),
                   { reps: 0, weight: 0 },
                 ];
                 setActiveExercise({ ...activeExercise, sets: newSets });
@@ -73,7 +73,7 @@ export const ExerciseTrackingModal = ({
               onUpdateSet={(index, field, value) => {
                 if (!activeExercise || activeExercise.type !== 'strength')
                   return;
-                const updatedSets = [...activeExercise.sets];
+                const updatedSets = [...(activeExercise.sets ?? [])];
                 updatedSets[index] = {
                   ...updatedSets[index],
                   [field]: value,

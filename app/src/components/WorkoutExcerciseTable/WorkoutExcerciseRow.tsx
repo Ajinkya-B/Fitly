@@ -1,9 +1,8 @@
 import { TableRow, TableCell } from '@/components/ui/table';
-import { GripVertical, RefreshCcw, Video } from 'lucide-react';
+import { GripVertical, RefreshCcw, Video, Play, Pencil } from 'lucide-react';
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { StatusPill } from '@/components';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -46,41 +45,67 @@ export const WorkoutExcerciseRow = ({
 
   return (
     <TableRow ref={setNodeRef} style={style} {...attributes}>
+      {/* Drag Handle + Exercise Name */}
       <TableCell className="flex items-center gap-2 cursor-move" {...listeners}>
         <GripVertical size={18} />
         <span>{exercise.name}</span>
       </TableCell>
 
+      {/* Type */}
       <TableCell>
         {exercise.type.charAt(0).toUpperCase() + exercise.type.slice(1)}
       </TableCell>
 
-      <TableCell>
-        <StatusPill
-          status={exercise.status}
-          onStart={
-            exercise.status === 'Not Started'
-              ? () => onStart(exercise)
-              : undefined
-          }
-        />
-      </TableCell>
-
+      {/* Sets / Time */}
       <TableCell>
         {exercise.type === 'strength'
           ? exercise.sets
-              .map((set) => `${set.reps} reps @ ${set.weight} lbs`)
-              .join(', ')
-          : `${exercise.time} min`}
+              ?.map((set) => `${set.reps} reps @ ${set.weight} lbs`)
+              ?.join(', ')
+          : `${exercise.duration} min`}
       </TableCell>
 
+      {/* Calories */}
       <TableCell>
         {exercise.type === 'cardio' ? (exercise.calories ?? '-') : '-'}
       </TableCell>
 
+      {/* Actions */}
       <TableCell className="flex gap-2">
-        {/* Video Preview Button with Tooltip */}
-        {exercise.videoUrl && (
+        {/* Start Button */}
+        {exercise.status == 'Not Started' && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => onStart(exercise)}
+              >
+                <Play className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Start Exercise</TooltipContent>
+          </Tooltip>
+        )}
+
+        {/* Edit Button */}
+        {exercise.status == 'Complete' && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => onStart(exercise)}
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Edit Exercise</TooltipContent>
+          </Tooltip>
+        )}
+
+        {/* Video Preview Button */}
+        {exercise.videoUrl && exercise.status == 'Not Started' && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -95,28 +120,30 @@ export const WorkoutExcerciseRow = ({
           </Tooltip>
         )}
 
-        {/* Swap Button with Tooltip FIXED */}
-        <Sheet>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <RefreshCcw className="w-4 h-4" />
-                </Button>
-              </SheetTrigger>
-            </TooltipTrigger>
-            <TooltipContent>Swap Exercise</TooltipContent>
-          </Tooltip>
+        {/* Swap Button */}
+        {exercise.status == 'Not Started' && (
+          <Sheet>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <RefreshCcw className="w-4 h-4" />
+                  </Button>
+                </SheetTrigger>
+              </TooltipTrigger>
+              <TooltipContent>Swap Exercise</TooltipContent>
+            </Tooltip>
 
-          <SheetContent side="right">
-            <SheetHeader>
-              <SheetTitle>Swap Exercise</SheetTitle>
-            </SheetHeader>
-            <div className="py-4 text-sm text-muted-foreground">
-              Show a list of alternative exercises for: <b>{exercise.name}</b>
-            </div>
-          </SheetContent>
-        </Sheet>
+            <SheetContent side="right">
+              <SheetHeader>
+                <SheetTitle>Swap Exercise</SheetTitle>
+              </SheetHeader>
+              <div className="py-4 text-sm text-muted-foreground">
+                Show a list of alternative exercises for: <b>{exercise.name}</b>
+              </div>
+            </SheetContent>
+          </Sheet>
+        )}
       </TableCell>
     </TableRow>
   );
