@@ -1,5 +1,12 @@
-import { JSX, useEffect, useState } from 'react';
+import { JSX, useEffect, useRef, useState } from 'react';
 import { useAppContext } from '@/hooks/useAppContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
 import {
   Dumbbell,
   HeartPulse,
@@ -164,6 +171,9 @@ export const WeeklyCalendar = () => {
           const isSelected = index === selectedIndex;
           const status = getStatus(date, today);
 
+          const holdTimer = useRef<NodeJS.Timeout | null>(null);
+          const [menuOpen, setMenuOpen] = useState(false);
+
           return (
             <div
               key={index}
@@ -187,8 +197,51 @@ export const WeeklyCalendar = () => {
                 })}
               </div>
 
-              <div className="mt-1 flex items-center justify-center gap-1 text-sm text-primary">
-                {iconMap[type]} <span>{type}</span>
+              <div
+                className="mt-1 flex items-center justify-center gap-1 text-sm text-primary relative"
+                onMouseDown={() => {
+                  holdTimer.current = setTimeout(() => setMenuOpen(true), 600); // long press only
+                }}
+                onMouseUp={() => {
+                  if (holdTimer.current) clearTimeout(holdTimer.current);
+                }}
+                onMouseLeave={() => {
+                  if (holdTimer.current) clearTimeout(holdTimer.current);
+                }}
+                onTouchStart={() => {
+                  holdTimer.current = setTimeout(() => setMenuOpen(true), 600);
+                }}
+                onTouchEnd={() => {
+                  if (holdTimer.current) clearTimeout(holdTimer.current);
+                }}
+              >
+                {/* Icon + type label */}
+                <button
+                  className="flex items-center gap-1 focus:outline-none"
+                  onClick={(e) => {
+                    e.preventDefault(); // prevent accidental click open
+                  }}
+                >
+                  {iconMap[type]} <span>{type}</span>
+                </button>
+
+                {/* Controlled dropdown */}
+                <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+                  <DropdownMenuTrigger asChild>
+                    {/* Hidden trigger: not clickable directly, just satisfies Radix */}
+                    <span />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem
+                      onClick={() => console.log('Cancel', type)}
+                    >
+                      Cancel
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => console.log('Move', type)}>
+                      Move Exercise
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               <div
