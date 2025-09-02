@@ -23,25 +23,25 @@ export const ExerciseTrackingModal = ({
   setCurrentSetIndex,
 }: ExerciseTrackingModalProps) => {
   const { setDayExercises, dayExercises } = useAppContext();
+
+  const handleClose = () => {
+    setActiveExercise(null);
+    setCurrentSetIndex(0);
+  };
+
   return (
-    <Dialog
-      open={!!activeExercise}
-      onOpenChange={() => {
-        setActiveExercise(null);
-        setCurrentSetIndex(0); // Reset index when dialog closes
-      }}
-    >
+    <Dialog open={!!activeExercise} onOpenChange={handleClose}>
       <DialogContent
-        className="sm:max-w-[600px]"
+        className="sm:max-w-[600px] rounded-2xl shadow-lg"
         onInteractOutside={(e) => e.preventDefault()}
       >
-        <DialogHeader>
-          <DialogTitle className="text-lg font-semibold">
+        <DialogHeader className="flex items-center justify-between">
+          <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
             {activeExercise?.name}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="py-2">
+        <div className="py-4">
           {activeExercise?.type === 'strength' ? (
             <StepperStrengthContent
               sets={activeExercise.sets ?? []}
@@ -67,8 +67,7 @@ export const ExerciseTrackingModal = ({
                       : ex,
                   ),
                 );
-                setActiveExercise(null);
-                setCurrentSetIndex(0);
+                handleClose();
               }}
               onUpdateSet={(index, field, value) => {
                 if (!activeExercise || activeExercise.type !== 'strength')
