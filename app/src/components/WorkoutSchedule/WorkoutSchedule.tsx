@@ -6,6 +6,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 
 import {
   Dumbbell,
@@ -64,6 +73,9 @@ export const WeeklyCalendar = () => {
     return todayIdx !== -1 ? todayIdx : 0;
   });
   const [weekOffset, setWeekOffset] = useState(0);
+
+  const [moveDialogOpen, setMoveDialogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     setWeeklyFocusLabels(getWeeklyFocusLabels());
@@ -237,7 +249,12 @@ export const WeeklyCalendar = () => {
                     >
                       Cancel
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => console.log('Move', type)}>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setMenuOpen(false); // close dropdown
+                        setMoveDialogOpen(true); // open calendar modal
+                      }}
+                    >
                       Move Exercise
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -261,6 +278,64 @@ export const WeeklyCalendar = () => {
           );
         })}
       </div>
+      <Dialog open={moveDialogOpen} onOpenChange={setMoveDialogOpen}>
+        <DialogContent className="sm:max-w-md rounded-2xl shadow-lg p-6">
+          <DialogHeader className="space-y-1">
+            <DialogTitle className="text-lg font-semibold">
+              Move Workout
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              Choose a new date from the calendar below to reschedule your
+              workout.
+            </p>
+          </DialogHeader>
+
+          <div className="my-4 mx-auto">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              className="rounded-xl border shadow-sm p-3"
+            />
+          </div>
+
+          {selectedDate && (
+            <div className="text-center text-sm text-muted-foreground mb-2">
+              Selected date:{' '}
+              <span className="font-medium text-foreground">
+                {selectedDate.toLocaleDateString(undefined, {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                })}
+              </span>
+            </div>
+          )}
+
+          <DialogFooter className="flex justify-end gap-3 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setMoveDialogOpen(false)}
+              className="rounded-xl"
+            >
+              Cancel
+            </Button>
+            <Button
+              disabled={!selectedDate}
+              onClick={() => {
+                if (selectedDate) {
+                  console.log('Moved workout to:', selectedDate);
+                  // TODO: hook into your move logic here
+                  setMoveDialogOpen(false);
+                }
+              }}
+              className="rounded-xl"
+            >
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
